@@ -1,10 +1,15 @@
 package com.cookiss.moviesapp.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.cookiss.movieapp.domain.model.genre_list.GenreMovieResponse
 import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.data.remote.ApiService
+import com.cookiss.moviesapp.data.remote.ReviewPagingSource
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
+import com.cookiss.moviesapp.domain.model.reviews.Reviews
 import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
 import com.cookiss.moviesapp.domain.repository.HomeRepository
 import com.cookiss.moviesapp.util.Constants
@@ -54,11 +59,19 @@ class HomeRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
-    override suspend fun getReviews(page: String, movieId: String): Flow<ReviewsResponse> {
+    override suspend fun getReviews(page: Int, movieId: String): Flow<ReviewsResponse> {
         return flow {
             val reviewResult = apiService.getReviews(movieId, page,Constants.API_KEY)
             emit(reviewResult)
         }.flowOn(Dispatchers.IO)
+    }
+
+    override fun fetchReviews(movieId: String): Flow<PagingData<Reviews>> {
+        return Pager(
+            PagingConfig(pageSize = 20, enablePlaceholders = false)
+        ) {
+            ReviewPagingSource(apiService, movieId)
+        }.flow
     }
 
 }

@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -21,16 +22,20 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.bumptech.glide.Glide
 import com.cookiss.movieapp.domain.model.genre_list.Genre
 import com.cookiss.moviesapp.databinding.FragmentMovieDetailBinding
+import com.cookiss.moviesapp.domain.model.reviews.Reviews
+import com.cookiss.moviesapp.presentation.adapter.KatalogPagingAdapter
 import com.cookiss.moviesapp.presentation.adapter.MovieTrailerAdapter
 import com.cookiss.moviesapp.presentation.adapter.ReviewAdapter
+import com.cookiss.moviesapp.presentation.adapter.ReviewLoadingAdapter
 import com.cookiss.moviesapp.presentation.home.HomeViewModel
 import com.cookiss.moviesapp.util.Constants
-import com.cookiss.moviesapp.util.ExpandableTextView
 import com.cookiss.moviesapp.util.Status
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener, ReviewAdapter.OnItemClickListener {
+class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener, KatalogPagingAdapter.OnItemClickListener {
 
     private val TAG = this.javaClass.simpleName
 
@@ -41,6 +46,8 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener,
     private val homeViewModel : HomeViewModel by viewModels()
 
     private lateinit var rv_trailer_list: RecyclerView
+    private var katalogList : MutableList<Reviews> = ArrayList()
+
     private lateinit var rv_reviews: RecyclerView
     private lateinit var staggeredGridLayoutManager: StaggeredGridLayoutManager
     private lateinit var linearLayoutManager: LinearLayoutManager
@@ -48,7 +55,7 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener,
 
     private var genreList : MutableList<Genre> = ArrayList()
     private lateinit var movieTrailerAdapter: MovieTrailerAdapter
-    private lateinit var reviewAdapter: ReviewAdapter
+    private lateinit var reviewAdapter: KatalogPagingAdapter
     private val args: MovieDetailFragmentArgs by navArgs()
 
     private var movieId : String = ""
@@ -88,7 +95,8 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener,
 
         getMovieDetail(movieId)
         getMovieVideos(movieId)
-        getMovieReviews(page.toString(), movieId)
+        fetchReviews(movieId)
+//        getMovieReviews(page, movieId)
 
         binding.clBack.setOnClickListener {
             findNavController().popBackStack()
@@ -157,42 +165,55 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener,
 
     }
 
-    private fun getMovieReviews(page: String, movieId: String) {
-        homeViewModel.getReviews(movieId, page)
-        homeViewModel.movieReviewsResult.observe(viewLifecycleOwner, Observer { movie_list ->
-            when(movie_list.status){
-                Status.SUCCESS -> {
-                    movie_list._data?.let {movie ->
+//    private fun getMovieReviews(page: Int, movieId: String) {
+//        homeViewModel.getReviews(page, movieId)
+//        homeViewModel.movieReviewsResult.observe(viewLifecycleOwner, Observer { movie_list ->
+//            when(movie_list.status){
+//                Status.SUCCESS -> {
+//                    movie_list._data?.let {movie ->
+//
+//                        isLoading = true
+//                        if(page.toInt() == 1){
+//                            reviewAdapter.removeData()
+//                            reviewAdapter.setData(movie.results)
+//                        }
+//                        else{
+//                            reviewAdapter.addData(movie.results)
+//
+//                        }
+//
+//                        total_pages = movie.total_pages
+//
+//
+//                    }
+//                    binding.progressBar.visibility =View.GONE
+//
+//                }
+//                Status.LOADING -> {
+//                    binding.progressBar.visibility = View.VISIBLE
+//                }
+//                Status.ERROR -> {
+//                    movie_list.message?.let {
+//                        Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+//                    }
+//                    binding.progressBar.visibility = View.GONE
+//
+//                }
+//            }
+//        })
+//    }
 
-                        isLoading = true
-                        if(page.toInt() == 1){
-                            reviewAdapter.removeData()
-                            reviewAdapter.setData(movie.results)
-                        }
-                        else{
-                            reviewAdapter.addData(movie.results)
+    private fun fetchReviews(movieId: String) {
+        lifecycleScope.launch {
+            homeViewModel.fetchReview(movieId).collectLatest { pagingData ->
+                Log.d(TAG, "fetchReviews: $pagingData")
 
-                        }
+                reviewAdapter.submitData(pagingData)
+                katalogList.addAll(reviewAdapter.snapshot().items)
 
-                        total_pages = movie.total_pages
-
-
-                    }
-                    binding.progressBar.visibility =View.GONE
-
-                }
-                Status.LOADING -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                }
-                Status.ERROR -> {
-                    movie_list.message?.let {
-                        Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
-                    }
-                    binding.progressBar.visibility = View.GONE
-
-                }
+                Log.d(TAG, "fetchReviews: $katalogList")
             }
-        })
+        }
     }
 
     private fun initRecyclerView() {
@@ -203,10 +224,15 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener,
     }
 
     private fun initRecyclerViewReviews() {
-        reviewAdapter = ReviewAdapter(requireContext(), this)
+        reviewAdapter = KatalogPagingAdapter(this)
         linearLayoutManager2 = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         rv_reviews.layoutManager = linearLayoutManager2
         rv_reviews.adapter = reviewAdapter
+
+        rv_reviews.adapter = reviewAdapter.withLoadStateHeaderAndFooter(
+            header = ReviewLoadingAdapter { reviewAdapter.retry() },
+            footer = ReviewLoadingAdapter { reviewAdapter.retry() }
+        )
     }
 
     override fun onItemClicked(v: View, position: Int) {
@@ -217,12 +243,7 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener,
     }
 
     override fun onShowMoreClicked(v: View, position: Int) {
-        if(reviewAdapter.getIsCollapse(position)){
-            reviewAdapter.setExpand(true, position)
-        }else{
-            reviewAdapter.setExpand(false, position)
 
-        }
     }
 
 }

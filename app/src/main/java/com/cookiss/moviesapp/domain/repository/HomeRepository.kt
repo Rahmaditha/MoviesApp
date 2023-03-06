@@ -1,9 +1,11 @@
 package com.cookiss.moviesapp.domain.repository
 
+import androidx.paging.PagingData
 import com.cookiss.movieapp.domain.model.genre_list.GenreMovieResponse
 import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
+import com.cookiss.moviesapp.domain.model.reviews.Reviews
 import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
 import kotlinx.coroutines.flow.Flow
 
@@ -29,7 +31,9 @@ interface HomeRepository {
     ) : Flow<MovieVideoResponse>
 
     suspend fun getReviews(
-        page: String,
+        page: Int,
         movieId: String
     ) : Flow<ReviewsResponse>
+
+    fun fetchReviews(movieId: String): Flow<PagingData<Reviews>>
 }

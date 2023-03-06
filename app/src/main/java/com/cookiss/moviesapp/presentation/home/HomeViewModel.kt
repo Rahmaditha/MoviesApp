@@ -4,10 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.cookiss.movieapp.domain.model.genre_list.GenreMovieResponse
 import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
+import com.cookiss.moviesapp.domain.model.reviews.Reviews
 import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
 import com.cookiss.moviesapp.domain.repository.HomeRepository
 import com.cookiss.moviesapp.util.Resource
@@ -130,9 +133,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun getReviews(page: String, movieId: String){
+    fun getReviews(page: Int, movieId: String){
         viewModelScope.launch {
-            repository.getReviews(movieId, page)
+            repository.getReviews(page, movieId)
                 .onStart {
                     _movieReviewsResult.postValue(Resource.Loading(true))
                 }
@@ -147,4 +150,27 @@ class HomeViewModel @Inject constructor(
                 }
         }
     }
+
+    fun fetchReview(movieId: String): Flow<PagingData<Reviews>> {
+        return repository.fetchReviews(movieId).cachedIn(viewModelScope)
+    }
+
+
+//    fun fetchReview(page: String, movieId: String){
+//        viewModelScope.launch {
+//            repository.getReviews(movieId, page)
+//                .onStart {
+//                    _movieReviewsResult.postValue(Resource.Loading(true))
+//                }
+//                .catch {
+//                    it.message?.let { message ->
+//                        _movieReviewsResult.postValue(Resource.Error(null, message))
+//                    }
+//                }
+//                .collect { movieReviews ->
+//                    _movieReviewsResult.postValue(Resource.Success(movieReviews))
+//
+//                }
+//        }
+//    }
 }
