@@ -8,6 +8,7 @@ import com.cookiss.movieapp.domain.model.genre_list.GenreMovieResponse
 import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
+import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
 import com.cookiss.moviesapp.domain.repository.HomeRepository
 import com.cookiss.moviesapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +36,9 @@ class HomeViewModel @Inject constructor(
 
     private val _movieVideosResult = MutableLiveData<Resource<MovieVideoResponse>>()
     val movieVideosResult : LiveData<Resource<MovieVideoResponse>> = _movieVideosResult
+
+    private val _movieReviewsResult = MutableLiveData<Resource<ReviewsResponse>>()
+    val movieReviewsResult : LiveData<Resource<ReviewsResponse>> = _movieReviewsResult
 
     fun getGenreList(){
         viewModelScope.launch {
@@ -121,6 +125,24 @@ class HomeViewModel @Inject constructor(
                 }
                 .collect { movieVideos ->
                     _movieVideosResult.postValue(Resource.Success(movieVideos))
+
+                }
+        }
+    }
+
+    fun getReviews(page: String, movieId: String){
+        viewModelScope.launch {
+            repository.getReviews(movieId, page)
+                .onStart {
+                    _movieReviewsResult.postValue(Resource.Loading(true))
+                }
+                .catch {
+                    it.message?.let { message ->
+                        _movieReviewsResult.postValue(Resource.Error(null, message))
+                    }
+                }
+                .collect { movieReviews ->
+                    _movieReviewsResult.postValue(Resource.Success(movieReviews))
 
                 }
         }

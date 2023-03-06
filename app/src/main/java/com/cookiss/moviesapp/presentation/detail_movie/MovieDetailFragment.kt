@@ -3,6 +3,7 @@ package com.cookiss.moviesapp.presentation.detail_movie
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,13 +22,15 @@ import com.bumptech.glide.Glide
 import com.cookiss.movieapp.domain.model.genre_list.Genre
 import com.cookiss.moviesapp.databinding.FragmentMovieDetailBinding
 import com.cookiss.moviesapp.presentation.adapter.MovieTrailerAdapter
+import com.cookiss.moviesapp.presentation.adapter.ReviewAdapter
 import com.cookiss.moviesapp.presentation.home.HomeViewModel
 import com.cookiss.moviesapp.util.Constants
+import com.cookiss.moviesapp.util.ExpandableTextView
 import com.cookiss.moviesapp.util.Status
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener {
+class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener, ReviewAdapter.OnItemClickListener {
 
     private val TAG = this.javaClass.simpleName
 
@@ -38,14 +41,25 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener 
     private val homeViewModel : HomeViewModel by viewModels()
 
     private lateinit var rv_trailer_list: RecyclerView
+    private lateinit var rv_reviews: RecyclerView
     private lateinit var staggeredGridLayoutManager: StaggeredGridLayoutManager
     private lateinit var linearLayoutManager: LinearLayoutManager
+    private lateinit var linearLayoutManager2: LinearLayoutManager
 
     private var genreList : MutableList<Genre> = ArrayList()
     private lateinit var movieTrailerAdapter: MovieTrailerAdapter
+    private lateinit var reviewAdapter: ReviewAdapter
     private val args: MovieDetailFragmentArgs by navArgs()
 
     private var movieId : String = ""
+    private var page : Int = 1
+
+    private var visibleItemCount : Int = 1
+    private var totalItemCount : Int = 1
+    private var pastVisibleItem : Int = 1
+
+    private var total_pages : Int = 0
+    private var isLoading : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,11 +80,15 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener 
         super.onViewCreated(view, savedInstanceState)
 
         rv_trailer_list = binding.rvVideos
+        rv_reviews = binding.rvReviews
+
         movieId = args.stringMovieId
         initRecyclerView()
+        initRecyclerViewReviews()
 
         getMovieDetail(movieId)
         getMovieVideos(movieId)
+        getMovieReviews(page.toString(), movieId)
 
         binding.clBack.setOnClickListener {
             findNavController().popBackStack()
@@ -135,6 +153,46 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener 
                 }
             }
         })
+
+
+    }
+
+    private fun getMovieReviews(page: String, movieId: String) {
+        homeViewModel.getReviews(movieId, page)
+        homeViewModel.movieReviewsResult.observe(viewLifecycleOwner, Observer { movie_list ->
+            when(movie_list.status){
+                Status.SUCCESS -> {
+                    movie_list._data?.let {movie ->
+
+                        isLoading = true
+                        if(page.toInt() == 1){
+                            reviewAdapter.removeData()
+                            reviewAdapter.setData(movie.results)
+                        }
+                        else{
+                            reviewAdapter.addData(movie.results)
+
+                        }
+
+                        total_pages = movie.total_pages
+
+
+                    }
+                    binding.progressBar.visibility =View.GONE
+
+                }
+                Status.LOADING -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                }
+                Status.ERROR -> {
+                    movie_list.message?.let {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show()
+                    }
+                    binding.progressBar.visibility = View.GONE
+
+                }
+            }
+        })
     }
 
     private fun initRecyclerView() {
@@ -144,11 +202,27 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener 
         rv_trailer_list.adapter = movieTrailerAdapter
     }
 
+    private fun initRecyclerViewReviews() {
+        reviewAdapter = ReviewAdapter(requireContext(), this)
+        linearLayoutManager2 = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        rv_reviews.layoutManager = linearLayoutManager2
+        rv_reviews.adapter = reviewAdapter
+    }
+
     override fun onItemClicked(v: View, position: Int) {
 
         val playVideoIntent =
             Intent(Intent.ACTION_VIEW, Uri.parse(Constants.YOUTUBE_VIDEO_URL + movieTrailerAdapter.getVideoKey(position)))
         requireContext().startActivity(playVideoIntent)
+    }
+
+    override fun onShowMoreClicked(v: View, position: Int) {
+        if(reviewAdapter.getIsCollapse(position)){
+            reviewAdapter.setExpand(true, position)
+        }else{
+            reviewAdapter.setExpand(false, position)
+
+        }
     }
 
 }

@@ -4,6 +4,7 @@ import com.cookiss.movieapp.domain.model.genre_list.GenreMovieResponse
 import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
+import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
 import kotlinx.coroutines.flow.Flow
 
 interface HomeRepository {
@@ -26,4 +27,9 @@ interface HomeRepository {
     suspend fun getMovieVideos(
         movieId: String
     ) : Flow<MovieVideoResponse>
+
+    suspend fun getReviews(
+        page: String,
+        movieId: String
+    ) : Flow<ReviewsResponse>
 }

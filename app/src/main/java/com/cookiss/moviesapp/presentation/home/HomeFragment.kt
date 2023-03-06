@@ -137,7 +137,13 @@ class HomeFragment : Fragment(), GenreListAdapter.OnItemClickListener {
 
     private fun initRecyclerView() {
         genreAdapter = GenreListAdapter(requireContext(), this)
-        staggeredGridLayoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+//        staggeredGridLayoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+
+        staggeredGridLayoutManager = object : StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL) {
+            override fun canScrollVertically(): Boolean {
+                return false
+            }
+        }
         rv_genre_list.layoutManager = staggeredGridLayoutManager
         rv_genre_list.adapter = genreAdapter
     }

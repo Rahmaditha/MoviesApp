@@ -5,6 +5,7 @@ import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.data.remote.ApiService
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
+import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
 import com.cookiss.moviesapp.domain.repository.HomeRepository
 import com.cookiss.moviesapp.util.Constants
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,13 @@ class HomeRepositoryImpl @Inject constructor(
         return flow {
             val movieVideos = apiService.getMoviesVideos(movieId, Constants.API_KEY)
             emit(movieVideos)
+        }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun getReviews(page: String, movieId: String): Flow<ReviewsResponse> {
+        return flow {
+            val reviewResult = apiService.getReviews(movieId, page,Constants.API_KEY)
+            emit(reviewResult)
         }.flowOn(Dispatchers.IO)
     }
 
