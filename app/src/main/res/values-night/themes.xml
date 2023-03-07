@@ -8,9 +8,31 @@
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">@color/purple_500</item>
+        <item name="android:textColor">@color/grey_dark</item>
         <!-- Customize your theme here. -->
+
     </style>
+
+    <style name="CustomCardview1" parent="Theme.MoviesApp">
+        <item name="backgroundColor">@color/purple_500</item>
+    </style>
+
+    <style name="CustomCardview2" parent="Theme.MoviesApp">
+        <item name="cardBackgroundColor">@color/purple_500</item>
+    </style>
+
+<!--    <style name="Light" parent="AppTheme">-->
+<!--        <item name="textColor">#000000</item>-->
+<!--        <item name="metaColor">#606060</item>-->
+<!--        <item name="color">#ffffff</item>-->
+<!--    </style>-->
+
+<!--    <style name="Dark" parent="AppTheme">-->
+<!--        <item name="textColor">#ffffff</item>-->
+<!--        <item name="metaColor">#aeaeae</item>-->
+<!--        <item name="color">#000000</item>-->
+<!--    </style>-->
 </resources>

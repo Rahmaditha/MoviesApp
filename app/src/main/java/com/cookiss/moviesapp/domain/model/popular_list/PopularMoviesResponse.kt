@@ -1,4 +1,6 @@
-package com.cookiss.movieapp.domain.model.popular_list
+package com.cookiss.moviesapp.domain.model.popular_list
+
+import com.cookiss.movieapp.domain.model.popular_list.PopularMovies
 
 data class PopularMoviesResponse(
     val page: Int,

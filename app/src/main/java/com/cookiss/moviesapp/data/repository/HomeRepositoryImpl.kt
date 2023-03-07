@@ -4,8 +4,10 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.cookiss.movieapp.domain.model.genre_list.GenreMovieResponse
-import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
+import com.cookiss.movieapp.domain.model.popular_list.PopularMovies
+import com.cookiss.moviesapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.data.remote.ApiService
+import com.cookiss.moviesapp.data.remote.MoviePagingSource
 import com.cookiss.moviesapp.data.remote.ReviewPagingSource
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
@@ -71,6 +73,14 @@ class HomeRepositoryImpl @Inject constructor(
             PagingConfig(pageSize = 20, enablePlaceholders = false)
         ) {
             ReviewPagingSource(apiService, movieId)
+        }.flow
+    }
+
+    override fun fetchMovies(with_genres: String): Flow<PagingData<PopularMovies>> {
+        return Pager(
+            PagingConfig(pageSize = 20, enablePlaceholders = false)
+        ) {
+            MoviePagingSource(apiService, with_genres)
         }.flow
     }
 

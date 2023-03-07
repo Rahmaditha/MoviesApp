@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.cookiss.movieapp.domain.model.genre_list.Genre
+import com.cookiss.movieapp.domain.model.popular_list.PopularMovies
 import com.cookiss.moviesapp.R
 import com.cookiss.moviesapp.databinding.FragmentHomeBinding
 import com.cookiss.moviesapp.presentation.adapter.GenreListAdapter
@@ -26,7 +27,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import me.relex.circleindicator.CircleIndicator
 
 @AndroidEntryPoint
-class HomeFragment : Fragment(), GenreListAdapter.OnItemClickListener {
+class HomeFragment : Fragment(),
+    GenreListAdapter.OnItemClickListener,
+        ImageSlideAdapter.OnItemClickListener
+{
 
     private val TAG = this.javaClass.simpleName
 
@@ -40,7 +44,7 @@ class HomeFragment : Fragment(), GenreListAdapter.OnItemClickListener {
     private lateinit var staggeredGridLayoutManager: StaggeredGridLayoutManager
     private lateinit var linearLayoutManager: LinearLayoutManager
 
-    private var genreList : MutableList<Genre> = ArrayList()
+    private var popularMoviesList : MutableList<PopularMovies> = ArrayList()
     private lateinit var genreAdapter: GenreListAdapter
 
     lateinit var viewPagerAdapter: ImageSlideAdapter
@@ -86,11 +90,13 @@ class HomeFragment : Fragment(), GenreListAdapter.OnItemClickListener {
                             Constants.IMAGE_URL + it.poster_path
                         }
 
-                        viewPagerAdapter = ImageSlideAdapter(requireContext(), stringUrl)
+                        viewPagerAdapter = ImageSlideAdapter(requireContext(), stringUrl, this)
                         binding.viewpager.adapter = viewPagerAdapter
                         indicator = requireView().findViewById(R.id.indicator) as CircleIndicator
                         indicator.setViewPager(binding.viewpager)
 
+                        popularMoviesList.clear()
+                        popularMoviesList.addAll(it.results)
                     }
                     binding.progressBar.visibility =View.GONE
 
@@ -153,5 +159,11 @@ class HomeFragment : Fragment(), GenreListAdapter.OnItemClickListener {
             .setStringIdCategory(genreAdapter.getId(position).toString())
             .setStringCategoryName(genreAdapter.getName(position))
         )
+    }
+
+    override fun onImageClicked(position: Int) {
+        findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToMovieDetailFragment()
+            .setStringMovieId(popularMoviesList[position].id.toString()))
+
     }
 }

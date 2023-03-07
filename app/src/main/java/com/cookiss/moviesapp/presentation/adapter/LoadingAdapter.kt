@@ -46,8 +46,8 @@ import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.cookiss.moviesapp.R
 
-class ReviewLoadingAdapter(private val retry: () -> Unit) :
-    LoadStateAdapter<ReviewLoadingAdapter.LoadingStateViewHolder>() {
+class LoadingAdapter(private val retry: () -> Unit) :
+    LoadStateAdapter<LoadingAdapter.LoadingStateViewHolder>() {
 
     class LoadingStateViewHolder(itemView: View, retry: () -> Unit) :
         RecyclerView.ViewHolder(itemView) {

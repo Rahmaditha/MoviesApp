@@ -11,7 +11,11 @@ import androidx.viewpager.widget.ViewPager
 import com.bumptech.glide.Glide
 import com.cookiss.moviesapp.R
 
-class ImageSlideAdapter(private val context: Context, private var imageList: List<String>) : PagerAdapter() {
+class ImageSlideAdapter(
+    private val context: Context,
+    private var imageList: List<String>,
+    private val onItemClickListener: OnItemClickListener
+) : PagerAdapter() {
     override fun getCount(): Int {
         return imageList.size
     }
@@ -32,6 +36,9 @@ class ImageSlideAdapter(private val context: Context, private var imageList: Lis
                 .into(ivImages);
         }
 
+        view.setOnClickListener {
+            onItemClickListener.onImageClicked(position)
+        }
 
         val vp = container as ViewPager
         vp.addView(view, 0)
@@ -43,4 +50,9 @@ class ImageSlideAdapter(private val context: Context, private var imageList: Lis
         val view = `object` as View
         vp.removeView(view)
     }
+
+    interface OnItemClickListener{
+        fun onImageClicked(position: Int)
+    }
 }
+

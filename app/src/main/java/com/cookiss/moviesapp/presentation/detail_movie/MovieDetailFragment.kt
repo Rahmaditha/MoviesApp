@@ -25,8 +25,7 @@ import com.cookiss.moviesapp.databinding.FragmentMovieDetailBinding
 import com.cookiss.moviesapp.domain.model.reviews.Reviews
 import com.cookiss.moviesapp.presentation.adapter.KatalogPagingAdapter
 import com.cookiss.moviesapp.presentation.adapter.MovieTrailerAdapter
-import com.cookiss.moviesapp.presentation.adapter.ReviewAdapter
-import com.cookiss.moviesapp.presentation.adapter.ReviewLoadingAdapter
+import com.cookiss.moviesapp.presentation.adapter.LoadingAdapter
 import com.cookiss.moviesapp.presentation.home.HomeViewModel
 import com.cookiss.moviesapp.util.Constants
 import com.cookiss.moviesapp.util.Status
@@ -230,8 +229,8 @@ class MovieDetailFragment : Fragment(), MovieTrailerAdapter.OnItemClickListener,
         rv_reviews.adapter = reviewAdapter
 
         rv_reviews.adapter = reviewAdapter.withLoadStateHeaderAndFooter(
-            header = ReviewLoadingAdapter { reviewAdapter.retry() },
-            footer = ReviewLoadingAdapter { reviewAdapter.retry() }
+            header = LoadingAdapter { reviewAdapter.retry() },
+            footer = LoadingAdapter { reviewAdapter.retry() }
         )
     }
 

@@ -1,7 +1,7 @@
 package com.cookiss.moviesapp.data.remote
 
 import com.cookiss.movieapp.domain.model.genre_list.GenreMovieResponse
-import com.cookiss.movieapp.domain.model.popular_list.PopularMoviesResponse
+import com.cookiss.moviesapp.domain.model.popular_list.PopularMoviesResponse
 import com.cookiss.moviesapp.domain.model.movie_detail.MovieDetailResponse
 import com.cookiss.moviesapp.domain.model.movie_videos.MovieVideoResponse
 import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
@@ -20,7 +20,6 @@ interface ApiService {
     suspend fun getPopularMovies(
         @Query("api_key") api_key: String
     ): PopularMoviesResponse
-
 
     @GET("discover/movie")
     suspend fun getMoviesByGenre(

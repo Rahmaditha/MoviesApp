@@ -1,27 +1,26 @@
 package com.cookiss.moviesapp.data.remote
 
 import androidx.paging.PagingSource
+import com.cookiss.movieapp.domain.model.popular_list.PopularMovies
 import com.cookiss.moviesapp.domain.model.reviews.Reviews
-import com.cookiss.moviesapp.domain.model.reviews.ReviewsResponse
 import com.cookiss.moviesapp.util.Constants
-import com.cookiss.moviesapp.util.Constants.STARTING_PAGE_INDEX
 import okio.IOException
 import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ReviewPagingSource @Inject constructor(
+class MoviePagingSource @Inject constructor(
     private val apiService: ApiService,
-    private val movieId: String
-) : PagingSource<Int, Reviews>(){
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Reviews> {
+    private val with_genres: String
+) : PagingSource<Int, PopularMovies>(){
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, PopularMovies> {
 
-        val position = params.key ?: STARTING_PAGE_INDEX
+        val position = params.key ?: Constants.STARTING_PAGE_INDEX
 
 
         return try {
-            val response = apiService.getReviews(movieId, position, Constants.API_KEY)
+            val response = apiService.getMoviesByGenre(position, with_genres, Constants.API_KEY)
             val listing = response.results
 
             val nextKey = if (listing.isEmpty()) {
@@ -30,7 +29,7 @@ class ReviewPagingSource @Inject constructor(
                 position + 1
             }
 
-            val prevKey = if (position == STARTING_PAGE_INDEX) {
+            val prevKey = if (position == Constants.STARTING_PAGE_INDEX) {
                 null
             }else{
                 position - 1
